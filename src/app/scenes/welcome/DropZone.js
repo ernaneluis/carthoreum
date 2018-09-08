@@ -85,21 +85,25 @@ export default class extends React.Component {
                   })
                   console.log(encryptedFile)
                   console.log(encryptedFile.buffer)
-                  console.log(Buffer.from(encryptedFile))
-                  console.log(Buffer.from(encryptedFile.buffer))
 
-                  ipfs.store({ data: encryptedFile.buffer })
-                  // ipfs.get({
-                  //   hash: 'QmeqsGH8mF8CRNZzpasxuCq7njtFKZYfhTvw6up8K4XpKj',
-                  // })
+                  const data = Buffer.from(encryptedFile.buffer)
+                  console.log(data)
 
-                  // const decryptedFile = await decryptFile({
-                  //   encryptedData: encryptedFile,
-                  //   password: sharedKey,
-                  // })
+                  const stored = await ipfs.store({ data })
+                  const hash = stored[0].hash
+                  console.log('stored hash', hash)
 
-                  const blob = new Blob([encryptedFile.buffer])
-                  saveAs(blob, 'encrypted.pdf')
+                  const gotEncryptedFileBuffer = await ipfs.get({ hash })
+                  console.log(gotEncryptedFileBuffer)
+                  console.log(gotEncryptedFileBuffer.buffer)
+
+                  const decryptedFile = await decryptFile({
+                    encryptedData: gotEncryptedFileBuffer,
+                    password: sharedKey,
+                  })
+
+                  const blob = new Blob([decryptedFile.buffer])
+                  saveAs(blob, 'decrypted.pdf')
                 }
               })(fileObject)
 
