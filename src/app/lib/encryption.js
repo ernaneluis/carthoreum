@@ -1,7 +1,6 @@
 import Wallet from 'ethereumjs-wallet'
 import ecies from 'eth-ecies'
-import openpgp from 'openpgp'
-import { message } from 'openpgp'
+import * as openpgp from 'openpgp'
 
 openpgp.initWorker({ path: './openpgp.worker.js' }) // set the relative web worker path
 
@@ -16,7 +15,7 @@ export const decrypt = ({ encryptedData, ethereumPrivateKey }) =>
 export const encryptFile = async ({ data, password }) => {
   console.log('encryptFile')
   const options = {
-    message: await message.fromBinary(data), // input as Message object
+    message: await openpgp.message.fromBinary(data), // input as Message object
     passwords: [password], // multiple passwords possible
     armor: false, // don't ASCII armor (for Uint8Array output)
   }
@@ -27,7 +26,7 @@ export const encryptFile = async ({ data, password }) => {
 
 export const decryptFile = async ({ encryptedData, password }) => {
   const options = {
-    message: await message.read(encryptedData), // parse encrypted bytes
+    message: await openpgp.message.read(encryptedData), // parse encrypted bytes
     passwords: [password], // decrypt with password
     format: 'binary', // output as Uint8Array
   }
