@@ -50,11 +50,11 @@ contract('Documents', function(accounts) {
     const doesDocumentExists = await instance.doesDocumentExists(sha3Hash)
     assert.equal(doesDocumentExists, true)
 
-    const didSign = await instance.didSign(sha3Hash)
+    const didSign = await instance.didSignDocument(sha3Hash)
     console.log({ didSign })
     assert.equal(didSign, true)
 
-    const didNotSign = await instance.didSign('notSign')
+    const didNotSign = await instance.didSignDocument('notSign')
     console.log({ didNotSign })
     assert.equal(didNotSign, false)
   })

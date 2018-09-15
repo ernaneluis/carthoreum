@@ -3,7 +3,7 @@ pragma solidity ^0.4.24;
 import "./Ownable.sol";
 
 contract Documents is Ownable {
-
+    // TODO add all the missing data to struct
     struct Document {
         uint timestamp;
         bytes32 sha3Hash;
@@ -14,9 +14,11 @@ contract Documents is Ownable {
     }
 
     event AddDocument(uint timestamp, bytes32 indexed sha3Hash, string ipfsHash,  address[] allowedSigners, address[] signeders);
+    // TODO create sign event
 
     mapping(bytes32 => Document) public documents;
 
+    // TODO safety check max of signers are 10
     function addDocument(bytes32 sha3Hash,  string ipfsHash) public notExistsDocument(sha3Hash) {    
         address[] memory allowedSigners = new address[](1);
         allowedSigners[0] = msg.sender;
@@ -29,7 +31,8 @@ contract Documents is Ownable {
 
         emit AddDocument(now, sha3Hash, ipfsHash, allowedSigners, signeders);
     }
-
+    
+    // TODO only allowed signers can sign
     function signDocument(bytes32 sha3Hash) public {
         // TODO check if sender can sign document
         documents[sha3Hash].signatures[msg.sender] = true;
@@ -55,7 +58,9 @@ contract Documents is Ownable {
     }
 
 
-    function didSign(bytes32 sha3Hash) public view returns (bool) {
+    function didSignDocument(bytes32 sha3Hash) public view returns (bool) {
         return documents[sha3Hash].signatures[msg.sender] == true;
     }
+
+    // TODO number of documents added
 }
