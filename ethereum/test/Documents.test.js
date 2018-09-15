@@ -13,7 +13,7 @@ function getLastEvent(instance) {
 }
 
 contract('Documents', function(accounts) {
-  it('should create a Document and reject a duplicate Document', async function() {
+  it('should create a Document and reject a duplicate Document and retrieve data from document', async function() {
     const account = accounts[0]
 
     const instance = await Documents.deployed()
@@ -33,8 +33,9 @@ contract('Documents', function(accounts) {
     const doesDocumentExists = await instance.doesDocumentExists(sha3Hash)
     assert.equal(doesDocumentExists, true)
 
-    const ipfsHashFromContract = await instance.getIpfsHash(sha3Hash)
-    assert.equal(ipfsHashFromContract, ipfsHash)
+    const docFromContract = await instance.getDocument(sha3Hash)
+    console.log({ docFromContract })
+    assert.equal(docFromContract[2], ipfsHash)
 
     try {
       await instance.addDocument(sha3Hash, ipfsHash)

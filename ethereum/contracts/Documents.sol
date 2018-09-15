@@ -49,10 +49,13 @@ contract Documents is Ownable {
         _;
     }
 
-      // TODO
-    // function getDocument(bytes32 sha3Hash) constant returns (Document) {
-    //     return documents[sha3Hash];
-    // }
+    function getDocument(bytes32 sha3Hash) public constant returns (uint,bytes32,string,address[],address[]) {
+        return (documents[sha3Hash].timestamp,
+        documents[sha3Hash].sha3Hash,
+        documents[sha3Hash].ipfsHash,
+        documents[sha3Hash].allowedSigners,
+        documents[sha3Hash].signatures);
+    }
 
     // TODO
     // function didSign(bytes32 sha3Hash) constant returns (bool) {
