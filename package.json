@@ -1,5 +1,6 @@
 {
   "name": "carthoreum",
+  "author": "Ernane Luis - hi@ernane.me",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -36,7 +37,6 @@
     "sass": "^1.7.3",
     "sjcl": "^1.0.7",
     "styled-components": "^3.3.3",
-    "truffle": "^4.1.14",
     "web3": "1.0.0-beta.33",
     "whatwg-fetch": "^2.0.4"
   },
@@ -67,8 +67,6 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "precommit": "./lint-check",
-    "compile:bootstrap": "sass ./bootstrap.scss src/app/bootstrap.css",
-    "contract:test": "cd ./ethereum && truffle test",
-    "contract:deploy:dev": "cd ./ethereum && truffle migrate --reset"
+    "compile:bootstrap": "sass ./bootstrap.scss src/app/bootstrap.css"
   }
 }
