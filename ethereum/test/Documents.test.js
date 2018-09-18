@@ -13,18 +13,43 @@ function getLastEvent(instance) {
 }
 
 const msg = '7e5941f066b2070419995072dac7323c02d5ae107b23d8085772f232487fecae'
-const ipfsHash = 'QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn'
+
+const encryptedIpfsHash = web3.utils.sha3(
+  'QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn'
+)
+
 const allowedSigners = [
   '0x39df5973289461639367e1dbaaf32715d14d6a49',
   '0xa1d59c562c72500b21da64f2244f809c3749c1c4',
 ]
+
+const encryptedSecrets = JSON.stringify({
+  '0x39df5973289461639367e1dbaaf32715d14d6a49': web3.utils.sha3('1'),
+  '0xa1d59c562c72500b21da64f2244f809c3749c1c4': web3.utils.sha3('2'),
+})
+
+const encryptedEmails = JSON.stringify({
+  '0x39df5973289461639367e1dbaaf32715d14d6a49': web3.utils.sha3(
+    'test@example.com'
+  ),
+  '0xa1d59c562c72500b21da64f2244f809c3749c1c4': web3.utils.sha3(
+    'test@google.com'
+  ),
+})
 
 contract('Documents', function(accounts) {
   it('should create a Document and reject a duplicate Document and retrieve data from document', async function() {
     const instance = await Documents.deployed()
     const sha3Hash = web3.utils.sha3(msg)
 
-    await instance.createDocument(allowedSigners, sha3Hash, ipfsHash)
+    await instance.createDocument(
+      sha3Hash,
+      encryptedIpfsHash,
+      allowedSigners,
+      encryptedSecrets,
+      encryptedEmails
+    )
+
     const eventObj = await getLastEvent(instance)
     console.log('event ', eventObj.event)
     assert.equal(eventObj.event, 'CreateDocument')
@@ -34,10 +59,10 @@ contract('Documents', function(accounts) {
 
     const docFromContract = await instance.getDocument(sha3Hash)
     console.log({ docFromContract })
-    assert.equal(docFromContract[2], ipfsHash)
+    assert.equal(docFromContract[2], encryptedIpfsHash)
 
     try {
-      await instance.createDocument(allowedSigners, sha3Hash, ipfsHash)
+      await instance.createDocument(allowedSigners, sha3Hash, encryptedIpfsHash)
     } catch (error) {
       assert.ok(true)
     }
@@ -48,9 +73,11 @@ contract('Documents', function(accounts) {
     const sha3Hash = web3.utils.sha3(msg + 1)
 
     await instance.createDocument(
-      [...allowedSigners, accounts[0]],
       sha3Hash,
-      ipfsHash
+      encryptedIpfsHash,
+      [...allowedSigners, accounts[0]],
+      encryptedSecrets,
+      encryptedEmails
     )
 
     await instance.signDocument(sha3Hash)
@@ -70,7 +97,14 @@ contract('Documents', function(accounts) {
     const instance = await Documents.deployed()
     const sha3Hash = web3.utils.sha3(msg + 2)
     console.log({ sha3Hash })
-    await instance.createDocument(allowedSigners, sha3Hash, ipfsHash)
+
+    await instance.createDocument(
+      sha3Hash,
+      encryptedIpfsHash,
+      allowedSigners,
+      encryptedSecrets,
+      encryptedEmails
+    )
 
     try {
       await instance.signDocument(sha3Hash)
