@@ -3,6 +3,7 @@
 
 # dependencies
 /node_modules
+/ethereum/node_modules
 
 # testing
 /coverage
