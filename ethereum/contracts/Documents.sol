@@ -9,6 +9,8 @@ contract Documents is Ownable {
     */
     uint constant public MAX_ALLOWED_SIGNERS_COUNT = 10;
 
+    uint public contribution = 1 finney;
+
     struct Document {
         uint timestamp;
 
@@ -48,7 +50,7 @@ contract Documents is Ownable {
         address[] _allowedSigners, 
         string _encryptedSecrets,
         string _encryptedEmails
-        ) public notExistsDocument(_sha3Hash) {    
+        ) public payable costs notExistsDocument(_sha3Hash) {    
         require(_allowedSigners.length <= MAX_ALLOWED_SIGNERS_COUNT, "Maximum 10 signers");
 
         address[] memory signatures = new address[](1);
@@ -64,7 +66,7 @@ contract Documents is Ownable {
         totalDocuments++;
     }
 
-    function signDocument(bytes32 sha3Hash) public canSignDocument(sha3Hash) {
+    function signDocument(bytes32 sha3Hash) public payable costs canSignDocument(sha3Hash) {
         documents[sha3Hash].didSign[msg.sender] = true;
         documents[sha3Hash].signatures.push(msg.sender);
         emit DidSignDocument(now, sha3Hash, msg.sender);
@@ -73,7 +75,6 @@ contract Documents is Ownable {
     function doesDocumentExists(bytes32 sha3Hash) public view returns (bool) {
         return documents[sha3Hash].sha3Hash != bytes32(0);
     }
-
 
     function getDocument(bytes32 sha3Hash) public view returns (uint, bytes32, string, address[], address[], string, string) {
         return (documents[sha3Hash].timestamp,
@@ -98,5 +99,14 @@ contract Documents is Ownable {
     modifier canSignDocument(bytes32 sha3Hash) {
         require(documents[sha3Hash].canSign[msg.sender],  "Address is not allowed to sign this document");
         _;
+    }
+
+    modifier costs {
+        require(msg.value >= contribution, "Insufficient amount! The minimum contribution is 0.01 ETHER");
+        _;
+    }
+
+    function withdraw() public onlyOwner {
+        msg.sender.transfer(address(this).balance);
     }
 }

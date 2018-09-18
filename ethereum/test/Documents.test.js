@@ -37,6 +37,8 @@ const encryptedEmails = JSON.stringify({
   ),
 })
 
+const oneFinney = 1000000000000000
+
 contract('Documents', function(accounts) {
   it('should create a Document and reject a duplicate Document and retrieve data from document', async function() {
     const instance = await Documents.deployed()
@@ -47,7 +49,8 @@ contract('Documents', function(accounts) {
       encryptedIpfsHash,
       allowedSigners,
       encryptedSecrets,
-      encryptedEmails
+      encryptedEmails,
+      { value: oneFinney }
     )
 
     const eventObj = await getLastEvent(instance)
@@ -62,7 +65,12 @@ contract('Documents', function(accounts) {
     assert.equal(docFromContract[2], encryptedIpfsHash)
 
     try {
-      await instance.createDocument(allowedSigners, sha3Hash, encryptedIpfsHash)
+      await instance.createDocument(
+        allowedSigners,
+        sha3Hash,
+        encryptedIpfsHash,
+        { value: oneFinney }
+      )
     } catch (error) {
       assert.ok(true)
     }
@@ -77,10 +85,11 @@ contract('Documents', function(accounts) {
       encryptedIpfsHash,
       [...allowedSigners, accounts[0]],
       encryptedSecrets,
-      encryptedEmails
+      encryptedEmails,
+      { value: oneFinney }
     )
 
-    await instance.signDocument(sha3Hash)
+    await instance.signDocument(sha3Hash, { value: oneFinney })
 
     const eventObj = await getLastEvent(instance)
     console.log('event ', { eventObj })
@@ -103,11 +112,12 @@ contract('Documents', function(accounts) {
       encryptedIpfsHash,
       allowedSigners,
       encryptedSecrets,
-      encryptedEmails
+      encryptedEmails,
+      { value: oneFinney }
     )
 
     try {
-      await instance.signDocument(sha3Hash)
+      await instance.signDocument(sha3Hash, { value: oneFinney })
     } catch (error) {
       assert.ok(true)
     }
