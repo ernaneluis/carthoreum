@@ -8,6 +8,16 @@ const mapDispatchToProps = dispatch => ({
   dispatch,
 })
 
+const mergeProps = (
+  { isSubmitting },
+  { dispatch },
+  { handleSubmit, ...ownProps }
+) => ({
+  ...ownProps,
+  isSubmitting,
+  onSubmit: handleSubmit(values => dispatch()),
+})
+
 export default reduxForm({
   form: 'docForm',
   destroyOnUnmount: false,
@@ -15,6 +25,7 @@ export default reduxForm({
 })(
   connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
+    mergeProps
   )(Welcome)
 )
