@@ -1,6 +1,8 @@
+import { EventEmitter } from 'events'
 import Dropzone from 'react-dropzone'
 import React from 'react'
 import styled from 'styled-components'
+import { Progress } from 'reactstrap'
 
 import { saveAs } from 'file-saver/FileSaver'
 
@@ -48,6 +50,11 @@ const Title = styled.h3`
 `
 
 export default class extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { progress: 0 }
+  }
+
   componentDidMount() {
     // we nead to clear the input on page reload
     // because the file objects get lost from browser memory
@@ -61,6 +68,9 @@ export default class extends React.Component {
 
     return (
       <div>
+        <Progress animated value={this.state.progress.toFixed(2)}>
+          {this.state.progress.toFixed(2)}
+        </Progress>
         <StyledDropZone
           accept="application/pdf"
           name={field.name}
@@ -68,50 +78,79 @@ export default class extends React.Component {
           onDrop={(accepted, rejected) => {
             const fileObjects = accepted
             fileObjects.forEach(fileObject => {
+              if (!fileObject || fileObject.size > 5 * 1024 * 1024) {
+                alert('Only .pdf files under 5MB are accepted.')
+                return
+              }
+
               var reader = new FileReader()
               // Closure to capture the file information.
               reader.onload = (theFile => {
                 return async e => {
+                  const sharedKey = createSharedKey().toString('hex')
                   // Render thumbnail.
                   //base64 fiel format
                   const arrayBuffer = e.target.result
-                  const fileAsBuffer = new Uint8Array(arrayBuffer)
+                  const fileAsUint8Array = new Uint8Array(arrayBuffer)
+                  let encryptedFile
 
-                  const sharedKey = createSharedKey().toString('hex')
+                  const total = fileAsUint8Array.length * 1.2
+                  let done = 0
 
-                  const encryptedFile = await encryptFile({
-                    data: fileAsBuffer,
+                  encryptFile({
+                    data: fileAsUint8Array,
                     password: sharedKey,
                   })
-                  console.log(encryptedFile)
-                  console.log(encryptedFile.buffer)
+                    .on('encrypting', chuck => {
+                      const progress = (done / total) * 100
+                      this.setState({ progress })
+                      console.log('progress: ', progress)
+                      done += chuck.length
+                    })
+                    .on('done', async result => {
+                      this.setState({ progress: 100 })
+                      encryptedFile = result
+                      console.log('done: ', { encryptedFile })
 
-                  const data = Buffer.from(encryptedFile.buffer)
-                  console.log(data)
+                      const decryptedFile = await decryptFile({
+                        encryptedData: encryptedFile,
+                        password: sharedKey,
+                      })
 
-                  const stored = await ipfs.store({ data })
-                  const hash = stored[0].hash
-                  console.log('stored hash', hash)
+                      const blob = new Blob([decryptedFile.buffer])
+                      saveAs(blob, 'decrypted.pdf')
+                    })
 
-                  const gotEncryptedFileBuffer = await ipfs.get({ hash })
-                  console.log(gotEncryptedFileBuffer)
-                  console.log(gotEncryptedFileBuffer.buffer)
+                  // const encryptedFile = await encryptFile({
+                  //   data: fileAsUint8Array,
+                  //   password: sharedKey,
+                  // })
+                  // console.log({ encryptedFile })
+                  // console.log(encryptedFile.buffer)
 
-                  const decryptedFile = await decryptFile({
-                    encryptedData: gotEncryptedFileBuffer,
-                    password: sharedKey,
-                  })
+                  // const data = Buffer.from(encryptedFile.buffer)
+                  // console.log(data)
 
-                  const blob = new Blob([decryptedFile.buffer])
-                  saveAs(blob, 'decrypted.pdf')
+                  // const stored = await ipfs.store({ data })
+                  // const hash = stored[0].hash
+                  // console.log('stored hash', hash)
+
+                  // const gotEncryptedFileBuffer = await ipfs.get({ hash })
+                  // console.log(gotEncryptedFileBuffer)
+                  // console.log(gotEncryptedFileBuffer.buffer)
+
+                  // const decryptedFile = await decryptFile({
+                  //   encryptedData: gotEncryptedFileBuffer,
+                  //   password: sharedKey,
+                  // })
+
+                  // const blob = new Blob([decryptedFile.buffer])
+                  // saveAs(blob, 'decrypted.pdf')
                 }
               })(fileObject)
 
               // Read in the image file as a data URL.
               reader.readAsArrayBuffer(fileObject)
-
-              if (!fileObject || fileObject.size > 5 * 1024 * 1024)
-                return alert('Only .pdf files under 5MB are accepted.')
             })
             field.input.onChange(fileObjects)
           }}
