@@ -2,20 +2,27 @@ import { connect } from 'react-redux'
 import { reduxForm } from 'redux-form'
 import Welcome from './Welcome'
 
-const mapStateToProps = state => ({})
+import { createDocument } from '../../../store/actions/welcomeActions'
+
+const mapStateToProps = ({
+  ui: { ipfsUploadProgress, encryptingProgress },
+}) => ({
+  ipfsUploadProgress,
+  encryptingProgress,
+})
 
 const mapDispatchToProps = dispatch => ({
   dispatch,
 })
 
 const mergeProps = (
-  { isSubmitting },
+  { ...stateProps },
   { dispatch },
   { handleSubmit, ...ownProps }
 ) => ({
+  ...stateProps,
   ...ownProps,
-  isSubmitting,
-  onSubmit: handleSubmit(values => dispatch()),
+  onSubmit: handleSubmit(values => dispatch(createDocument(values))),
 })
 
 export default reduxForm({
