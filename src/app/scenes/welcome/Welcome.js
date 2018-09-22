@@ -3,7 +3,7 @@ import Link from 'redux-first-router-link'
 import styled from 'styled-components'
 import classnames from 'classnames'
 import { Field, FieldArray } from 'redux-form'
-import { Button, ButtonGroup } from 'reactstrap'
+import { Button, ButtonGroup, Progress } from 'reactstrap'
 
 import DropZone from './DropZone'
 
@@ -80,7 +80,7 @@ const renderSigner = ({ fields }) => (
   </div>
 )
 
-const Welcome = ({ onSubmit }) => (
+const Welcome = ({ onSubmit, ipfsUploadProgress, encryptingProgress }) => (
   <div className="container bg-light">
     <div className="row justify-content-center text-center mb-5">
       <div className="col-8">
@@ -102,6 +102,25 @@ const Welcome = ({ onSubmit }) => (
         <div className="row">
           <div className="col-12">
             <Field component={DropZone} name="doc" />
+
+            <Progress
+              animated
+              value={encryptingProgress.toFixed(2)}
+              className="mb-2"
+            >
+              {encryptingProgress.toFixed(2) < 100
+                ? 'Encrypting...'
+                : 'Encrypted'}{' '}
+              {encryptingProgress.toFixed(2)}%
+            </Progress>
+
+            <Progress animated value={ipfsUploadProgress.toFixed(2)}>
+              {ipfsUploadProgress.toFixed(2) < 100
+                ? 'Uploading...'
+                : 'Uploaded'}{' '}
+              {ipfsUploadProgress.toFixed(2)}%
+            </Progress>
+
             <small>
               If it has been certified already, you will be redirected to the
               original record. You can also input a hash to find previous
