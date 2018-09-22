@@ -11,6 +11,8 @@ import createHistory from 'history/createBrowserHistory'
 
 import routesMap from '../app/routesMap'
 
+import uiReducer from './reducers/uiReducer'
+
 export const history = createHistory()
 
 // setup redux first router with allias names
@@ -25,6 +27,7 @@ const {
 const rootReducer = combineReducers({
   form: formReducer,
   location: locationReducer,
+  ui: uiReducer,
 })
 
 const enhancers = [routerEnhancer]
