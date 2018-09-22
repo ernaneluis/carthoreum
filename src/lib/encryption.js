@@ -2,7 +2,10 @@ import Wallet from 'ethereumjs-wallet'
 import ecies from 'eth-ecies'
 import * as openpgp from 'openpgp'
 
-const EventEmitter = require('events').EventEmitter
+import store from '../store/store'
+import { setEncryptingFileProgress } from '../store/actions/uiActions'
+
+let fileSize = 0
 
 openpgp.initWorker({ path: './openpgp.worker.js' }) // set the relative web worker path
 
@@ -15,8 +18,10 @@ export const decrypt = ({ encryptedData, ethereumPrivateKey }) =>
   ecies.decrypt(ethereumPrivateKey, encryptedData)
 
 export const encryptFile = ({ data, password }) => {
+  //add 20% more because dont know the final size of encrypted file
+  fileSize = data.length * 1.2
+
   let result = []
-  let emitter = new EventEmitter()
 
   const readableStream = new ReadableStream({
     start(controller) {
@@ -31,23 +36,24 @@ export const encryptFile = ({ data, password }) => {
     armor: false, // don't ASCII armor (for Uint8Array output)
   }
 
-  openpgp.encrypt(options).then(async ciphertext => {
+  return openpgp.encrypt(options).then(async ciphertext => {
     // get raw encrypted packets as Uint8Array
     const encrypted = ciphertext.message.packets.write()
     const reader = openpgp.stream.getReader(encrypted)
     while (true) {
       const { done, value } = await reader.read()
       if (done) {
-        emitter.emit('done', new Uint8Array(result))
+        store.dispatch(setEncryptingFileProgress(100))
         return new Uint8Array(result)
       } else {
-        emitter.emit('encrypting', value)
         // value for fetch streams is a Uint8Array
         result = [...result, ...value]
+
+        const progress = (result.length / fileSize) * 100
+        store.dispatch(setEncryptingFileProgress(progress))
       }
     }
   })
-  return emitter
 }
 
 export const decryptFile = async ({ encryptedData, password }) => {
